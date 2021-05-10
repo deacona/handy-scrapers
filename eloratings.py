@@ -23,7 +23,7 @@ TOURNAMENTS = ["European_Championship"]
 SUFFIXES = ["start"]
 
 
-def process_page(browser, page_name):
+def process_page(page_name):
     """process one page of ratings
     Args:
         browser: Instantiated browser session
@@ -33,9 +33,13 @@ def process_page(browser, page_name):
     """
     logging.info("Processing {0}".format(page_name))
 
+    opts = FirefoxOptions()
+    opts.add_argument("--headless")
+    browser = webdriver.Firefox(options=opts)
+    logging.debug(type(browser))
     try:
         browser.get("http://eloratings.net/{0}".format(page_name))
-        time.sleep(5)
+        time.sleep(10)
 
         main = browser.find_element_by_id("maintable_{0}".format(page_name))
 
@@ -62,6 +66,10 @@ def process_page(browser, page_name):
     except Exception as e:
         logging.error("Processing failed on {0}".format(page_name))
         logging.debug(e)
+        
+    finally:
+        browser.close()
+        browser.quit()
 
     return
 
@@ -74,10 +82,6 @@ def scrape_elo():
         None
     """
     logging.info("Starting scrape of website")
-    opts = FirefoxOptions()
-    opts.add_argument("--headless")
-    browser = webdriver.Firefox(options=opts)
-    logging.debug(type(browser))
 
     for y in YEARS:
         for t in TOURNAMENTS:
@@ -88,10 +92,7 @@ def scrape_elo():
                     page = "{0}_{1}_{2}".format(y, t, s)
 
                 logging.debug(page)
-                process_page(browser, page)
-
-    browser.close()
-    browser.quit()
+                process_page(page)
 
     return
 
